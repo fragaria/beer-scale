@@ -9,19 +9,25 @@ const int LOADCELL_SCK_PIN = 3;
 const int LED_DATA = 9;
 const int LED_CLK = 8;
 const int LED_CS = 10;
-const int ONE_WIRE_BUS = 7;
+const int ONE_WIRE_BUS = 12;
 const byte TEMP_RESOLUTION = 11;
 const int TEMP_DELAY = 750 / (1 << (12 - TEMP_RESOLUTION));
-const int PLUS_PIN = 4;
-const int MINUS_PIN = 5;
+const int BTN_DELAY = 500;
+const int C_PLUS_PIN = 7;
+const int C_MINUS_PIN = 6;
+const int PLUS_PIN = 5;
+const int MINUS_PIN = 4;
 const float BEER_W = 8;
+
 
 int offset;
 int count = 0;
 int lastCount = 0;
 int lastTempRequest;
+int lastBtnRead;
 int plus;
 int minus;
+int milis;
 
 LedControl lc = LedControl(LED_DATA, LED_CLK, LED_CS, 1);
 HX711 scale;
@@ -111,6 +117,11 @@ void setupButtons() {
   digitalWrite(PLUS_PIN, HIGH);
   pinMode(MINUS_PIN, INPUT_PULLUP); // Define the arcade switch NANO pin as an Input using Internal Pullups
   digitalWrite(MINUS_PIN, HIGH);
+  pinMode(C_PLUS_PIN, INPUT_PULLUP); // Define the arcade switch NANO pin as an Input using Internal Pullups
+  digitalWrite(C_PLUS_PIN, HIGH);
+  pinMode(C_MINUS_PIN, INPUT_PULLUP); // Define the arcade switch NANO pin as an Input using Internal Pullups
+  digitalWrite(C_MINUS_PIN, HIGH);
+  lastBtnRead = millis();
 }
 
 void saveOffset(int c) {
@@ -138,6 +149,7 @@ void setup() {
 }
 
 void loop() {
+  milis = millis();
   if (scale.wait_ready_timeout(1000)) {
     long reading = scale.get_units(5);
     count = round(-reading / BEER_W) + offset;
@@ -150,7 +162,7 @@ void loop() {
     printErr(0);
   }
 
-  if (millis() - lastTempRequest >= TEMP_DELAY) // waited long enough??
+  if (milis - lastTempRequest >= TEMP_DELAY) // waited long enough??
   {
     float temperature = sensors.getTempCByIndex(0);
     sensors.requestTemperatures();
@@ -159,16 +171,32 @@ void loop() {
     Serial.println(temperature);
   }
 
-  plus = digitalRead(PLUS_PIN);
-  minus = digitalRead(MINUS_PIN);
+  if (milis - lastBtnRead >= BTN_DELAY) // waited long enough??
+  {
+    plus = digitalRead(PLUS_PIN);
+    minus = digitalRead(MINUS_PIN);
 
-  if (plus == HIGH) {
-    offset += 1;
+    if (plus == HIGH) {
+      offset += 1;
+      lastBtnRead = milis;
+    }
+
+    if (minus == HIGH) {
+      offset -= 1;
+      lastBtnRead = milis;
+    }
+
+    if (digitalRead(C_PLUS_PIN) == HIGH) {
+      Serial.println("c plus pressed");
+      lastBtnRead = milis;
+    }
+
+    if (digitalRead(C_MINUS_PIN) == HIGH) {
+      Serial.println("c minus pressed");
+      lastBtnRead = milis;
+    }
   }
 
-  if (minus == HIGH) {
-    offset -= 1;
-  }
 
   //scale.power_down();			        // put the ADC in sleep mode
   //scale.power_up();
