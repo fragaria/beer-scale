@@ -7,4 +7,4 @@ const port = new SerialPort('/dev/ttyUSB0', {
 
 const parser = port.pipe(new Delimiter({ delimiter: '\n' }));
 
-parser.on('data', console.log);
+parser.on('data', (data) => { console.log(data.toString()); });
