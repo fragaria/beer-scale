@@ -23,7 +23,9 @@ const float BEER_W = 8;
 int offset;
 int count = 0;
 int lastCount = 0;
+float temperature = -1;
 int lastTempRequest;
+float lastTemp = -1;
 int lastBtnRead;
 int plus;
 int minus;
@@ -128,14 +130,21 @@ void saveOffset(int c) {
   EEPROM.put(0, c);
 }
 
-int loadOffset() {
+int loadOffset() { 
   int c;
   EEPROM.get(0, c);
   return c;
 }
 
+void sendData(float temp, int count, int timestamp) {
+  static char outstr[4];
+  dtostrf(temp, 4, 1, outstr);
+  Serial.println("t:" + String(timestamp, DEC) + " count:" + String(count) + " temp:" + outstr);
+}
+
 void setup() {
   Serial.begin(38400);
+  Serial.println("starting");
   setupLCD();
   printFragaria();
 
@@ -155,6 +164,7 @@ void loop() {
     count = round(-reading / BEER_W) + offset;
     printNumber(count , 0, -1);
     if (lastCount != count) {
+      sendData(temperature, count, milis);
       saveOffset(count);
       lastCount = count;
     }
@@ -164,11 +174,14 @@ void loop() {
 
   if (milis - lastTempRequest >= TEMP_DELAY) // waited long enough??
   {
-    float temperature = sensors.getTempCByIndex(0);
+    temperature = sensors.getTempCByIndex(0);
     sensors.requestTemperatures();
     lastTempRequest = millis();
     printNumber(temperature * 10, 4, 1);
-    Serial.println(temperature);
+    if (abs(int(lastTemp * 10) - int(temperature * 10)) >= 1) {
+      sendData(temperature, count, milis);
+      lastTemp = temperature;
+    }
   }
 
   if (milis - lastBtnRead >= BTN_DELAY) // waited long enough??
@@ -187,12 +200,10 @@ void loop() {
     }
 
     if (digitalRead(C_PLUS_PIN) == HIGH) {
-      Serial.println("c plus pressed");
       lastBtnRead = milis;
     }
 
     if (digitalRead(C_MINUS_PIN) == HIGH) {
-      Serial.println("c minus pressed");
       lastBtnRead = milis;
     }
   }
