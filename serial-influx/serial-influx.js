@@ -24,7 +24,8 @@ console.log('setup done... waiting for message');
 
 parser.on('data', (data) => {
     console.log('got some data');
-    const parsed = /t:(\d+) count:(\d+) temp: (\d+.\d+)/.exec(data.toString());
+    const parsed = /t:\s*(\d+) count:\s*(\d+) temp:\s*(\d+.\d+)/.exec(data.toString());
+
     if (parsed) {
         const t = parseInt(parsed[1]);
         const beerCount = parseInt(parsed[2], 10);
