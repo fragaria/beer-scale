@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "influxdb-nodejs": "^3.1.0",
     "serialport": "^7.1.5"
   }
 }
