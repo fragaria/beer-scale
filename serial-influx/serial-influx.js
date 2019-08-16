@@ -23,6 +23,7 @@ client.schema('beer', fieldSchema, tagSchema, {
 console.log('setup done... waiting for message');
 
 parser.on('data', (data) => {
+    console.log('got some data');
     const parsed = /t:(\d+) count:(\d+) temp: (\d+.\d+)/.exec(data);
     if (parsed) {
         const t = parseInt(parsed[1]);
