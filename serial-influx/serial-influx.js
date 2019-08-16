@@ -1,3 +1,4 @@
+console.log('starting serial->influx');
 const SerialPort = require('serialport');
 const Delimiter = require('@serialport/parser-delimiter');
 const Influx = require('influxdb-nodejs');
@@ -18,6 +19,8 @@ const tagSchema = {
 client.schema('beer', fieldSchema, tagSchema, {
     stripUnknown: true,
 });
+
+console.log('setup done... waiting for message');
 
 parser.on('data', (data) => {
     const parsed = /t:(\d+) count:(\d+) temp: (\d+.\d+)/.exec(data);
