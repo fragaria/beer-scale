@@ -11,9 +11,9 @@ parser.on('data', (data) => {
     console.log(data.toString());
     const parsed = /t:(\d+) count:(\d+) temp: (\d+.\d+)/.exec(data);
     if (parsed) {
-        const t = parsed[1];
-        const beerCount = parsed[2];
-        const temperature = parsed[3];
+        const t = parseInt(parsed[1]);
+        const beerCount = parseInt(parsed[2], 10);
+        const temperature = parseFloat(parsed[3]);
         console.log(t, beerCount, temperature);
     }
 });
