@@ -39,5 +39,7 @@ parser.on('data', (data) => {
             })
             .then(() => console.info('write point success'))
             .catch(console.error);
+    } else {
+        console.info("unable to parse: ", data);
     }
 });
